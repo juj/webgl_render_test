@@ -5,6 +5,7 @@
 
 void upload_unicode_char_to_texture(int unicodeChar, int charSize, int applyShadow);
 void load_texture_from_url(GLuint texture, const char *url, int *outWidth, int *outHeight);
+void request_animation_frame_loop(EM_BOOL (*cb)(double time, void *userData), void *userData);
 
 static EMSCRIPTEN_WEBGL_CONTEXT_HANDLE glContext;
 static GLuint quad, colorPos, matPos, solidColor;
@@ -43,7 +44,8 @@ static GLuint create_texture()
 
 void EMSCRIPTEN_KEEPALIVE init_webgl(int width, int height)
 {
-  emscripten_set_element_css_size("canvas", width / emscripten_get_device_pixel_ratio(), height / emscripten_get_device_pixel_ratio());
+  double dpr = emscripten_get_device_pixel_ratio();
+  emscripten_set_element_css_size("canvas", width / dpr, height / dpr);
   emscripten_set_canvas_element_size("canvas", width, height);
 
   EmscriptenWebGLContextAttributes attrs;
@@ -98,21 +100,21 @@ double EMSCRIPTEN_KEEPALIVE rand01()
   return emscripten_random();
 }
 
-static void (*raf)(double t, double dt);
+typedef void (*tick_func)(double t, double dt);
 
-static void tick()
+static EM_BOOL tick(double time, void *userData)
 {
   static double t0;
-  double t1 = emscripten_get_now();
-  double dt = t1 - t0;
-  t0 = t1;
-  raf(t1, dt);
+  double dt = time - t0;
+  t0 = time;
+  tick_func f = (tick_func)(userData);
+  f(time, dt);
+  return EM_TRUE;
 }
 
 void EMSCRIPTEN_KEEPALIVE set_animation_frame_callback(void (*func)(double t, double dt))
 {
-  raf = func;
-  emscripten_set_main_loop(tick, 0, 0);
+  request_animation_frame_loop(tick, func);
 }
 
 void EMSCRIPTEN_KEEPALIVE clear_screen(float r, float g, float b, float a)

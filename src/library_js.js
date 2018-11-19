@@ -1,4 +1,10 @@
 mergeInto(LibraryManager.library, {
+  uploadFlipped: function(img) {
+    GLctx.pixelStorei(0x9240/*GLctx.UNPACK_FLIP_Y_WEBGL*/, true);
+    GLctx.texImage2D(0x0DE1/*GLctx.TEXTURE_2D*/, 0, 0x1908/*GLctx.RGBA*/, 0x1908/*GLctx.RGBA*/, 0x1401/*GLctx.UNSIGNED_BYTE*/, img);
+    GLctx.pixelStorei(0x9240/*GLctx.UNPACK_FLIP_Y_WEBGL*/, false);
+  },
+  upload_unicode_char_to_texture__deps: ['uploadFlipped'],
   upload_unicode_char_to_texture: function(unicodeChar, charSize, applyShadow) {
     var canvas = document.createElement('canvas');
     canvas.width = canvas.height = charSize;
@@ -20,25 +26,28 @@ mergeInto(LibraryManager.library, {
       ctx.strokeText(String.fromCharCode(unicodeChar), 0, canvas.height-7);
     }
     ctx.fillText(String.fromCharCode(unicodeChar), 0, canvas.height-7);
-    GLctx.pixelStorei(GLctx.UNPACK_FLIP_Y_WEBGL, true);
-    GLctx.texImage2D(GLctx.TEXTURE_2D, 0, GLctx.RGBA, GLctx.RGBA, GLctx.UNSIGNED_BYTE, canvas);
-    GLctx.pixelStorei(GLctx.UNPACK_FLIP_Y_WEBGL, false);
+    _uploadFlipped(canvas);
   },
+  load_texture_from_url__deps: ['uploadFlipped'],
   load_texture_from_url: function(glTexture, url, outW, outH) {
     var img = new Image();
     img.onload = function() {
       HEAPU32[outW>>2] = img.width;
       HEAPU32[outH>>2] = img.height;
-      GLctx.bindTexture(GLctx.TEXTURE_2D, GL.textures[glTexture]);
-      GLctx.pixelStorei(GLctx.UNPACK_FLIP_Y_WEBGL, true);
-      GLctx.texImage2D(GLctx.TEXTURE_2D, 0, GLctx.RGBA, GLctx.RGBA, GLctx.UNSIGNED_BYTE, img);
-      GLctx.pixelStorei(GLctx.UNPACK_FLIP_Y_WEBGL, false);
+      GLctx.bindTexture(0x0DE1/*GLctx.TEXTURE_2D*/, GL.textures[glTexture]);
+      _uploadFlipped(img);
     };
-    img.src = Pointer_stringify(url);
+    img.src = UTF8ToString(url);
   },
   play_audio: function(url, loop) {
-    var a = new Audio(Pointer_stringify(url));
+    var a = new Audio(UTF8ToString(url));
     a.loop = !!loop;
     a.play();
-  }
+  },
+  request_animation_frame_loop: function(cb, userData) {
+    function tick(timeStamp) {
+      if (Module['dynCall_idi'](cb, timeStamp, userData)) requestAnimationFrame(tick);
+    }
+    return requestAnimationFrame(tick);
+  },
 });

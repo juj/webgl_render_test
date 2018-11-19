@@ -1,12 +1,30 @@
 <!doctype html><html lang="en-us"><head><meta charset="utf-8"></head>
 <body>
-  <canvas id="canvas" style='display:block; margin:auto;'></canvas>
-  <script>
-    var Module = {
-      print: function() { console.log(Array.prototype.slice.call(arguments).join(' ')) },
-      printErr: function() { console.error(Array.prototype.slice.call(arguments).join(' ')) },
-    };
-  </script>
-  {{{ SCRIPT }}}
+<canvas style='display:block; margin:auto;'></canvas>
+<script>
+	var Module = {};
+
+	function script(url, cb) {
+		var s = document.createElement('script');
+		s.src = url;
+		s.onload = cb;
+		document.body.appendChild(s);
+	}
+
+	function binary(url, cb) {
+		var x = new XMLHttpRequest();
+		x.open('GET', url, true);
+		x.responseType = 'arraybuffer';
+		x.onload = function() { cb(x.response); }
+		x.send(null);
+	}
+
+	binary('webgl_render_test.js.mem', function(mem) {
+		Module.mem = mem;
+	});
+	script('webgl_render_test.asm.js', function() {
+		script('webgl_render_test.js');
+	});
+</script>
 </body>
 </html>
