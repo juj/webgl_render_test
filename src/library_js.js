@@ -44,10 +44,4 @@ mergeInto(LibraryManager.library, {
     a.loop = !!loop;
     a.play();
   },
-  request_animation_frame_loop: function(cb, userData) {
-    function tick(timeStamp) {
-      if (Module['dynCall_idi'](cb, timeStamp, userData)) requestAnimationFrame(tick);
-    }
-    return requestAnimationFrame(tick);
-  },
 });

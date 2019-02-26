@@ -7,17 +7,11 @@ Run in terminal:
 
 ```bash
 cd ~
-git clone https://github.com/juj/emsdk.git
+git clone https://github.com/emscripten-core/emsdk.git
 cd emsdk
 ./emsdk install sdk-incoming-64bit
 ./emsdk activate sdk-incoming-64bit
 source ./emsdk_env.sh
-
-# This sample needs the branch juj/november_2018 to work
-cd emscripten/incoming
-git remote add juj https://github.com/juj/emscripten.git
-git fetch juj
-git checkout november_2018
 
 cd ~
 git clone https://github.com/juj/webgl_render_test.git

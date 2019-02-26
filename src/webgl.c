@@ -114,7 +114,7 @@ static EM_BOOL tick(double time, void *userData)
 
 void EMSCRIPTEN_KEEPALIVE set_animation_frame_callback(void (*func)(double t, double dt))
 {
-  request_animation_frame_loop(tick, func);
+  emscripten_request_animation_frame_loop(tick, func);
 }
 
 void EMSCRIPTEN_KEEPALIVE clear_screen(float r, float g, float b, float a)
