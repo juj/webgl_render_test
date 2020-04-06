@@ -9,8 +9,8 @@ Run in terminal:
 cd ~
 git clone https://github.com/emscripten-core/emsdk.git
 cd emsdk
-./emsdk install sdk-incoming-64bit
-./emsdk activate sdk-incoming-64bit
+./emsdk install sdk-upstream-master-64bit
+./emsdk activate sdk-upstream-master-64bit
 source ./emsdk_env.sh
 
 cd ~
