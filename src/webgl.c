@@ -51,6 +51,7 @@ void EMSCRIPTEN_KEEPALIVE init_webgl(int width, int height)
   EmscriptenWebGLContextAttributes attrs;
   emscripten_webgl_init_context_attributes(&attrs);
   attrs.alpha = 0;
+  attrs.majorVersion = 2;
   glContext = emscripten_webgl_create_context("canvas", &attrs);
   emscripten_webgl_make_context_current(glContext);
 
