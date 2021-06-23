@@ -28,6 +28,33 @@ mergeInto(LibraryManager.library, {
     ctx.fillText(String.fromCharCode(unicodeChar), 0, canvas.height-7);
     _uploadFlipped(canvas);
   },
+
+  find_character_pair_kerning: function(ch1, ch2, charSize) {
+    if (ch1 <= 32) ch1 = 105; // replace spaces with 'i' character to be able to measure their advance with fillText()
+    if (ch2 <= 32) ch2 = 105;
+    var s2 = String.fromCharCode(ch2);
+    var canvas = document.createElement('canvas');
+    canvas.height = charSize;
+    canvas.width = charSize*3;
+    var ctx = canvas.getContext('2d');
+    ctx.font = charSize + 'px Arial Unicode';
+
+    function getPixelAdvance() {
+      var data = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      var d = new Uint32Array(data.data.buffer);
+      for(var x = data.width-1; x > 0; --x) {
+        for(var i = x; i < d.length; i += data.width) {
+          if (d[i]) return x;
+        }
+      }
+    }
+
+    ctx.fillText(s2, 0, canvas.height-7);
+    var advance1 = getPixelAdvance();
+    ctx.fillText(String.fromCharCode(ch1) + s2, 0, canvas.height-7);
+    return getPixelAdvance() - advance1;
+  },
+
   load_texture_from_url__deps: ['uploadFlipped'],
   load_texture_from_url: function(glTexture, url, outW, outH) {
     var img = new Image();

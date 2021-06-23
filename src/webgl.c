@@ -6,6 +6,7 @@
 void upload_unicode_char_to_texture(int unicodeChar, int charSize, int applyShadow);
 void load_texture_from_url(GLuint texture, const char *url, int *outWidth, int *outHeight);
 void request_animation_frame_loop(EM_BOOL (*cb)(double time, void *userData), void *userData);
+float find_character_pair_kerning(unsigned int ch1, unsigned int ch2, int charSize);
 
 static EMSCRIPTEN_WEBGL_CONTEXT_HANDLE glContext;
 static GLuint quad, colorPos, matPos, solidColor;
@@ -200,6 +201,35 @@ static Glyph *find_or_cache_character(unsigned int ch, int charSize, int shadow)
   return 0; // fail
 }
 
+typedef struct KerningPair
+{
+  // Font
+  unsigned int ch1, ch2;
+  int charSize;
+  float kerning;
+} KerningPair;
+
+#define MAX_KERNING_PAIRS 4096
+static KerningPair kerningPairs[MAX_KERNING_PAIRS] = {};
+
+static float get_character_pair_kerning(unsigned int ch1, unsigned int ch2, int charSize)
+{
+  size_t i = 0;
+  for(; i < MAX_KERNING_PAIRS; ++i)
+  {
+    if (!kerningPairs[i].ch1)
+      break;
+    if (kerningPairs[i].ch1 == ch1 && kerningPairs[i].ch2 == ch2 && kerningPairs[i].charSize == charSize)
+      return kerningPairs[i].kerning;
+  }
+  float kerning = find_character_pair_kerning(ch1, ch2, charSize);
+  kerningPairs[i].ch1 = ch1;
+  kerningPairs[i].ch2 = ch2;
+  kerningPairs[i].charSize = charSize;
+  kerningPairs[i].kerning = kerning;
+  return kerning;
+}
+
 static void fill_char(float x0, float y0, float r, float g, float b, float a, unsigned int ch, int charSize, int shadow)
 {
   fill_textured_rectangle(x0, y0, x0+charSize, y0+charSize, r, g, b, a, find_or_cache_character(ch, charSize, shadow)->texture);
@@ -209,7 +239,9 @@ void EMSCRIPTEN_KEEPALIVE fill_text(float x0, float y0, float r, float g, float 
 {
   while(*str)
   {
-    fill_char(x0, y0, r, g, b, a, *str++, charSize, shadow);
-    x0 += spacing;
+    char ch = *str++;
+    fill_char(x0, y0, r, g, b, a, ch, charSize, shadow);
+    char next = *str;
+    x0 += get_character_pair_kerning(ch, next, charSize);
   }
 }
